@@ -1,16 +1,17 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace MedicalAppointment.App.Models
 {
     public class InMemoryPromptState : Dictionary<string, object>
     {
         private const string NameKey = "name";
-        private const string AgeKey = "age";
+        private const string BithdateKey = "birth";
 
         public InMemoryPromptState()
         {
             this[NameKey] = null;
-            this[AgeKey] = 0;
+            this[BithdateKey] = DateTime.MinValue;
         }
 
         public string Name
@@ -19,10 +20,10 @@ namespace MedicalAppointment.App.Models
             set => this[NameKey] = value;
         }
 
-        public int Age
+        public DateTime Birthdate
         {
-            get => (int)this[AgeKey];
-            set => this[AgeKey] = value;
+            get => (DateTime)this[BithdateKey];
+            set => this[BithdateKey] = value;
         }
     }
 }
