@@ -16,6 +16,8 @@ namespace MedicalAppointment.Common.Entities
 
         public string ZipCode { get; set; }
 
-        private string HealthInsurance { get; set; }
+        public string HealthInsurance { get; set; }
+
+        public string Phone { get; set; }
     }
 }
