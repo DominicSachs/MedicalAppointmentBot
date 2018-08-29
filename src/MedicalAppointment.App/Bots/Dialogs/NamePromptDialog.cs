@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
-using Microsoft.Bot.Builder;
-using PromptsDialog = Microsoft.Bot.Builder.Dialogs;
+﻿using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Prompts;
+using System.Threading.Tasks;
+using PromptsDialog = Microsoft.Bot.Builder.Dialogs;
 
 namespace MedicalAppointment.App.Bots.Dialogs
 {
@@ -9,10 +9,7 @@ namespace MedicalAppointment.App.Bots.Dialogs
     {
         public string Name => "NamePrompt";
 
-        public PromptsDialog.IDialog GetDialog()
-        {
-            return new PromptsDialog.TextPrompt(NameValidator);
-        }
+        public PromptsDialog.IDialog GetDialog() => new PromptsDialog.TextPrompt(NameValidator);
 
         public async Task GetDialogStep(PromptsDialog.DialogContext dialogContext, object result, PromptsDialog.SkipStepFunction next)
         {

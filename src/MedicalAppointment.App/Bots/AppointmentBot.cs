@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using MedicalAppointment.App.Bots.Dialogs;
+﻿using MedicalAppointment.App.Bots.Dialogs;
 using MedicalAppointment.App.Models;
 using Microsoft.Bot;
 using Microsoft.Bot.Builder;
@@ -8,6 +6,8 @@ using Microsoft.Bot.Builder.Core.Extensions;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Prompts;
 using Microsoft.Bot.Schema;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace MedicalAppointment.App.Bots
 {

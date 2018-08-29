@@ -1,11 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using MedicalAppointment.App.Models;
+﻿using MedicalAppointment.App.Models;
 using Microsoft.Bot.Builder;
-using PromptsDialog = Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Prompts;
 using Microsoft.Bot.Builder.Prompts.Choices;
 using Microsoft.Recognizers.Text;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using PromptsDialog = Microsoft.Bot.Builder.Dialogs;
 
 namespace MedicalAppointment.App.Bots.Dialogs
 {
@@ -13,10 +13,7 @@ namespace MedicalAppointment.App.Bots.Dialogs
     {
         public string Name => "ChoicePrompt";
 
-        public PromptsDialog.IDialog GetDialog()
-        {
-            return new PromptsDialog.ChoicePrompt(Culture.German, AppointmentChoiceValidator);
-        }
+        public PromptsDialog.IDialog GetDialog() => new PromptsDialog.ChoicePrompt(Culture.German, ChoiceValidator);
 
         public Task GetDialogStep(PromptsDialog.DialogContext dialogContext, object result, PromptsDialog.SkipStepFunction next)
         {
@@ -37,10 +34,10 @@ namespace MedicalAppointment.App.Bots.Dialogs
                 }
             };
 
-            return dialogContext.Prompt(Name, "Please select an option.", cardOptions);
+            return dialogContext.Prompt("ChoicePrompt", "Please select an option.", cardOptions);
         }
 
-        private static async Task AppointmentChoiceValidator(ITurnContext context, ChoiceResult result)
+        private static async Task ChoiceValidator(ITurnContext context, ChoiceResult result)
         {
             if (!result.Succeeded())
             {

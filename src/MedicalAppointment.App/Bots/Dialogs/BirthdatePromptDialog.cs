@@ -1,10 +1,10 @@
-﻿using System.Threading.Tasks;
-using MedicalAppointment.App.Models;
+﻿using MedicalAppointment.App.Models;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Core.Extensions;
-using PromptsDialog = Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Prompts;
 using Microsoft.Recognizers.Text;
+using System.Threading.Tasks;
+using PromptsDialog = Microsoft.Bot.Builder.Dialogs;
 
 namespace MedicalAppointment.App.Bots.Dialogs
 {
@@ -12,10 +12,7 @@ namespace MedicalAppointment.App.Bots.Dialogs
     {
         public string Name => "BirthdatePrompt";
 
-        public PromptsDialog.IDialog GetDialog()
-        {
-            return new PromptsDialog.DateTimePrompt(Culture.German, DateValidator);
-        }
+        public PromptsDialog.IDialog GetDialog() => new PromptsDialog.DateTimePrompt(Culture.German, DateValidator);
 
         public async Task GetDialogStep(PromptsDialog.DialogContext dialogContext, object result, PromptsDialog.SkipStepFunction next)
         {
