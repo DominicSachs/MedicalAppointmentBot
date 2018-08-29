@@ -35,6 +35,7 @@ namespace MedicalAppointment.App.Bots
             var state = context.GetConversationState<InMemoryPromptState>();
             var dialogCtx = _dialogs.CreateContext(context, state);
 
+            //await dialogCtx.Begin("GatherInfo");
             switch (context.Activity.Type)
             {
                 case ActivityTypes.Message:

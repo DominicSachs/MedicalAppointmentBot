@@ -6,9 +6,9 @@ namespace MedicalAppointment.App.Bots.Dialogs
     {
         public IEnumerable<IPromptDialog> GetDialogs()
         {
+            yield return new ChoicePromptDialog();
             yield return new NamePromptDialog();
             yield return new BithdatePromptDialog();
-            yield return new ChoicePromptDialog();
         }
     }
 }

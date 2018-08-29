@@ -16,7 +16,7 @@ namespace MedicalAppointment.App.Bots.Dialogs
 
         public async Task GetDialogStep(PromptsDialog.DialogContext dialogContext, object result, PromptsDialog.SkipStepFunction next)
         {
-            await dialogContext.Prompt(Name, "Wie ist Ihr voller Name?");
+            await dialogContext.Prompt(Name, "What is your full name?");
         }
 
         private static async Task NameValidator(ITurnContext context, TextResult result)
@@ -25,7 +25,7 @@ namespace MedicalAppointment.App.Bots.Dialogs
             if (names?.Length < 2)
             {
                 result.Status = PromptStatus.NotRecognized;
-                await context.SendActivity("Your name should be at least 2 characters long.");
+                await context.SendActivity("Your name should be at least 2 words.");
             }
         }
     }

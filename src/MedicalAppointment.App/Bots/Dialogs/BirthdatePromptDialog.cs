@@ -21,7 +21,7 @@ namespace MedicalAppointment.App.Bots.Dialogs
         {
             var state = dialogContext.Context.GetConversationState<InMemoryPromptState>();
             state.Name = (result as TextResult)?.Value;
-            await dialogContext.Prompt(Name, "Wie ist Ihr Geburtsdatum?");
+            await dialogContext.Prompt(Name, "Please enter your birthdate.");
         }
 
         private static async Task DateValidator(ITurnContext context, DateTimeResult result)
@@ -35,7 +35,7 @@ namespace MedicalAppointment.App.Bots.Dialogs
             if (!result.Succeeded())
             {
                 result.Status = PromptStatus.NotRecognized;
-                await context.SendActivity("Sie haben kein gültiges Datum angegeben.");
+                await context.SendActivity("This is not a valid date.");
             }
         }
     }

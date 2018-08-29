@@ -26,18 +26,18 @@ namespace MedicalAppointment.App.Bots.Dialogs
                 {
                     new Choice
                     {
-                        Value = "Terminanfrage",
+                        Value = "Request an appointment ",
                         Synonyms = new List<string> { AppointmentType.Create.ToString() }
                     },
                     new Choice
                     {
-                        Value = "Terminabsage",
+                        Value = "Cancel an appointment",
                         Synonyms = new List<string> { AppointmentType.Cancel.ToString() }
                     }
                 }
             };
 
-            return dialogContext.Prompt(Name, "Was möchten Sie tun?", cardOptions);
+            return dialogContext.Prompt(Name, "Please select an option.", cardOptions);
         }
 
         private static async Task AppointmentChoiceValidator(ITurnContext context, ChoiceResult result)
@@ -45,7 +45,7 @@ namespace MedicalAppointment.App.Bots.Dialogs
             if (!result.Succeeded())
             {
                 result.Status = PromptStatus.NotRecognized;
-                await context.SendActivity("Asuwahl nicht erkannt.");
+                await context.SendActivity("Unknown option.");
             }
             var value = result.Value;
         }
