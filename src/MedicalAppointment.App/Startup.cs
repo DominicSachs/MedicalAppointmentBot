@@ -1,5 +1,6 @@
 ﻿using System;
 using MedicalAppointment.App.Bots;
+using MedicalAppointment.App.Bots.Dialogs;
 using MedicalAppointment.App.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -28,7 +29,8 @@ namespace MedicalAppointment.App
             services.AddSingleton(_configuration);
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.ConfigureDataStorage(_configuration);
-            
+
+            services.AddSingleton<IDialogFactory, DialogFactory>();
             services.AddBot<AppointmentBot>(options =>
             {
                 options.CredentialProvider = new ConfigurationCredentialProvider(_configuration);
