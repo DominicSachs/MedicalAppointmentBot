@@ -8,20 +8,17 @@ using Microsoft.Recognizers.Text;
 
 namespace MedicalAppointment.App.Bots.Dialogs
 {
-    internal class BithdatePromptDialog
+    internal class BithdatePromptDialog : IPromptDialog
     {
-        public static string Id => "BirthdatePrompt";
+        public string Name => "BirthdatePrompt";
 
-        internal static PromptsDialog.IDialog GetPromptDialog()
-        {
-            return new PromptsDialog.DateTimePrompt(Culture.German, DateValidator);
-        }
-        
-        internal static async Task GetCardStep(PromptsDialog.DialogContext dialogContext, object result, PromptsDialog.SkipStepFunction next)
+        public PromptsDialog.IDialog GetDialog() => new PromptsDialog.DateTimePrompt(Culture.German, DateValidator);
+
+        public async Task GetDialogStep(PromptsDialog.DialogContext dialogContext, object result, PromptsDialog.SkipStepFunction next)
         {
             var state = dialogContext.Context.GetConversationState<InMemoryPromptState>();
             state.Name = (result as TextResult)?.Value;
-            await dialogContext.Prompt(Id, "Wie ist Ihr Geburtsdatum?");
+            await dialogContext.Prompt(Name, "Wie ist Ihr Geburtsdatum?");
         }
 
         private static async Task DateValidator(ITurnContext context, DateTimeResult result)

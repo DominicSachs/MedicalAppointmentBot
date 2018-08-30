@@ -9,16 +9,13 @@ using Microsoft.Recognizers.Text;
 
 namespace MedicalAppointment.App.Bots.Dialogs
 {
-    internal class ChoicePromptDialog
+    internal class ChoicePromptDialog : IPromptDialog
     {
-        public static string Id => "ChoicePrompt";
+        public string Name => "ChoicePrompt";
 
-        internal static PromptsDialog.IDialog GetPromptDialog()
-        {
-            return new PromptsDialog.ChoicePrompt(Culture.German, AppointmentChoiceValidator);
-        }
+        public PromptsDialog.IDialog GetDialog() => new PromptsDialog.ChoicePrompt(Culture.German, AppointmentChoiceValidator);
 
-        internal static Task GetCardStep(PromptsDialog.DialogContext dialogContext, object result, PromptsDialog.SkipStepFunction next)
+        public Task GetDialogStep(PromptsDialog.DialogContext dialogContext, object result, PromptsDialog.SkipStepFunction next)
         {
             var cardOptions = new PromptsDialog.ChoicePromptOptions
             {
@@ -37,7 +34,7 @@ namespace MedicalAppointment.App.Bots.Dialogs
                 }
             };
 
-            return dialogContext.Prompt(Id, "Was möchten Sie tun?", cardOptions);
+            return dialogContext.Prompt(Name, "Was möchten Sie tun?", cardOptions);
         }
 
         private static async Task AppointmentChoiceValidator(ITurnContext context, ChoiceResult result)

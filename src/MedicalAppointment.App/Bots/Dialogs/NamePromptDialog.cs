@@ -5,18 +5,15 @@ using Microsoft.Bot.Builder.Prompts;
 
 namespace MedicalAppointment.App.Bots.Dialogs
 {
-    internal class NamePromptDialog
+    internal class NamePromptDialog : IPromptDialog
     {
-        public static string Id => "NamePrompt";
+        public string Name => "NamePrompt";
 
-        internal static PromptsDialog.IDialog GetPromptDialog()
-        {
-            return new PromptsDialog.TextPrompt(NameValidator);
-        }
+        public PromptsDialog.IDialog GetDialog() => new PromptsDialog.TextPrompt(NameValidator);
 
-        internal static async Task GetCardStep(PromptsDialog.DialogContext dialogContext, object result, PromptsDialog.SkipStepFunction next)
+        public async Task GetDialogStep(PromptsDialog.DialogContext dialogContext, object result, PromptsDialog.SkipStepFunction next)
         {
-            await dialogContext.Prompt(Id, "Wie ist Ihr voller Name?");
+            await dialogContext.Prompt(Name, "Wie ist Ihr voller Name?");
         }
 
         private static async Task NameValidator(ITurnContext context, TextResult result)
