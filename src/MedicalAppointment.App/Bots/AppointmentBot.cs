@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using MedicalAppointment.App.Bots.Dialogs;
 using MedicalAppointment.App.Models;
+using MedicalAppointment.Common.Storage.Interfaces;
 using Microsoft.Bot;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Core.Extensions;
@@ -15,12 +16,12 @@ namespace MedicalAppointment.App.Bots
     {
         private readonly DialogSet _dialogs;
 
-        public AppointmentBot(IDialogFactory dialogFactory)
+        public AppointmentBot(IDialogFactory dialogFactory, IPatientStorage patientStorage)
         {
             _dialogs = new DialogSet();
             var waterFallSteps = new List<WaterfallStep>();
 
-            foreach (var dialog in dialogFactory.GetDialogs())
+            foreach (var dialog in dialogFactory.GetDialogs(patientStorage))
             {
                 _dialogs.Add(dialog.Name, dialog.GetDialog());
                 waterFallSteps.Add(dialog.GetDialogStep);
@@ -50,7 +51,6 @@ namespace MedicalAppointment.App.Bots
         private async Task GatherInfoStep(DialogContext dialogContext, object result, SkipStepFunction next)
         {
             var state = dialogContext.Context.GetConversationState<InMemoryPromptState>();
-            var state_Birthdate = (result as DateTimeResult);
             //await dialogContext.Context.SendActivity($"Your name is {state.Name} and your age is {state.Age}");
             await dialogContext.End();
         }

@@ -1,29 +1,39 @@
 ﻿using System;
 using System.Collections.Generic;
+using MedicalAppointment.Common.Models;
 
 namespace MedicalAppointment.App.Models
 {
     public class InMemoryPromptState : Dictionary<string, object>
     {
-        private const string NameKey = "name";
-        private const string BithdateKey = "birth";
-
-        public InMemoryPromptState()
+        public string FirstName
         {
-            this[NameKey] = null;
-            this[BithdateKey] = DateTime.MinValue;
+            get => (string)this[nameof(FirstName)];
+            set => this[nameof(FirstName)] = value;
         }
 
-        public string Name
+        public string LastName
         {
-            get => (string)this[NameKey];
-            set => this[NameKey] = value;
+            get => (string)this[nameof(LastName)];
+            set => this[nameof(LastName)] = value;
         }
 
         public DateTime Birthdate
         {
-            get => (DateTime)this[BithdateKey];
-            set => this[BithdateKey] = value;
+            get => (DateTime)this[nameof(Birthdate)];
+            set => this[nameof(Birthdate)] = value;
+        }
+
+        public AppointmentType AppointmentType
+        {
+            get => (AppointmentType)this[nameof(AppointmentType)];
+            set => this[nameof(AppointmentType)] = value;
+        }
+
+        public AppointmentReason AppointmentReason
+        {
+            get => (AppointmentReason)this[nameof(AppointmentReason)];
+            set => this[nameof(AppointmentReason)] = value;
         }
     }
 }

@@ -1,13 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 
 namespace MedicalAppointment.App.Models
 {
     public enum AppointmentType
     {
+        [Description("Terminanfrage")]
         Create,
+        [Description("Terminabsage")]
         Cancel
     }
 }

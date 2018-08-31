@@ -10,6 +10,10 @@ namespace MedicalAppointment.Common.Entities
         public Patient Patient { get; set; }
         
         public AppointmentState State{ get; set; }
+        
+        public AppointmentReason Reason { get; set; }
+
+        public string Information { get; set; }
 
         public DateTime AppointmentStart { get; set; }
 

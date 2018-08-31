@@ -7,33 +7,14 @@ using Microsoft.EntityFrameworkCore;
 
 namespace MedicalAppointment.Common.Storage.Implementations
 {
-    public class PatientStorage : IStorage<Patient>
+    public class PatientStorage : Storage<Patient>, IPatientStorage
     {
-        public async Task<Patient> Get(int id)
+        public async Task<Patient> Get(string firstName, string lastName, DateTime birthDate)
         {
             using (var ctx = new AppDbContext())
             {
-                return await ctx.Patients.SingleOrDefaultAsync(p => p.Id == id);
+                return await ctx.Patients.SingleOrDefaultAsync(p => p.FirstName == firstName && p.LastName == lastName && p.BirthDate == birthDate);
             }
-        }
-
-        public async Task<int> Add(Patient item)
-        {
-            using (var ctx = new AppDbContext())
-            {
-                var patient = await ctx.Patients.AddAsync(item);
-                return patient.Entity.Id;
-            }
-        }
-
-        public Task Delete(int id)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task Update(Patient item)
-        {
-            throw new NotImplementedException();
         }
     }
 }

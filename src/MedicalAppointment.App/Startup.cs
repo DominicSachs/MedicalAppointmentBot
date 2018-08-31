@@ -12,6 +12,8 @@ using Microsoft.Bot.Builder.TraceExtensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MedicalAppointment.Common.Extensions;
+using MedicalAppointment.Common.Storage.Implementations;
+using MedicalAppointment.Common.Storage.Interfaces;
 
 namespace MedicalAppointment.App
 {
@@ -31,6 +33,8 @@ namespace MedicalAppointment.App
             services.ConfigureDataStorage(_configuration);
 
             services.AddSingleton<IDialogFactory, DialogFactory>();
+            services.AddTransient<IPatientStorage, PatientStorage>();
+
             services.AddBot<AppointmentBot>(options =>
             {
                 options.CredentialProvider = new ConfigurationCredentialProvider(_configuration);
