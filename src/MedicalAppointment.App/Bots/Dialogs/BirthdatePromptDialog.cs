@@ -18,8 +18,6 @@ namespace MedicalAppointment.App.Bots.Dialogs
 
         public async Task GetDialogStep(PromptsDialog.DialogContext dialogContext, object result, PromptsDialog.SkipStepFunction next)
         {
-            //var state = dialogContext.Context.GetConversationState<InMemoryPromptState>();
-            //state.Name = (result as TextResult)?.Value;
             await dialogContext.Prompt(Name, "Wie ist Ihr Geburtsdatum?");
         }
 

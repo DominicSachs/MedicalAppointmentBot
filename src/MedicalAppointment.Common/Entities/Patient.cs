@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace MedicalAppointment.Common.Entities
 {
@@ -19,5 +20,7 @@ namespace MedicalAppointment.Common.Entities
         public string HealthInsurance { get; set; }
 
         public string Phone { get; set; }
+
+        public virtual List<Appointment> Appointments { get; set; }
     }
 }

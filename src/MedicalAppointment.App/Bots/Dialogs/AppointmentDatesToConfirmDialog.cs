@@ -11,16 +11,16 @@ using Prompts = Microsoft.Bot.Builder.Prompts;
 
 namespace MedicalAppointment.App.Bots.Dialogs
 {
-    internal class AppointmentDatesToCancelDialog : IPromptDialog
+    internal class AppointmentDatesToConfirmDialog : IPromptDialog
     {
         private readonly IPatientStorage _patientStorage;
 
-        public AppointmentDatesToCancelDialog(IPatientStorage patientStorage)
+        public AppointmentDatesToConfirmDialog(IPatientStorage patientStorage)
         {
             _patientStorage = patientStorage;
         }
 
-        public string Name => nameof(AppointmentDatesToCancelDialog);
+        public string Name => nameof(AppointmentDatesToConfirmDialog);
 
         public IDialog GetDialog() => new ChoicePrompt(Culture.German, ChoiceValidator);
 
@@ -28,7 +28,7 @@ namespace MedicalAppointment.App.Bots.Dialogs
         {
             var state = dialogContext.Context.GetConversationState<InMemoryPromptState>();
 
-            if (state.AppointmentType == AppointmentType.Create)
+            if (state.AppointmentType == AppointmentType.Cancel)
             {
                 return next();
             }
@@ -42,22 +42,17 @@ namespace MedicalAppointment.App.Bots.Dialogs
                     new Choice
                     {
                         Value = "30.12.2018",
-                        Synonyms = new List<string> { "30.12.2018" }
+                        Synonyms = new List<string> { "30.12.2018 09:00" }
                     },
                     new Choice
                     {
                         Value = "30.01.2019",
-                        Synonyms = new List<string> { "30.01.2019" }
-                    },
-                    new Choice
-                    {
-                        Value = "alle",
-                        Synonyms = new List<string> { "alle" }
+                        Synonyms = new List<string> { "30.01.2019 11:00" }
                     }
                 }
             };
 
-            return dialogContext.Prompt(Name, "Wählen Sie den Termin aus, den sie absagen möchten?", cardOptions);
+            return dialogContext.Prompt(Name, "Wählen Sie Ihren Termin aus?", cardOptions);
         }
 
         private static async Task ChoiceValidator(ITurnContext context, Prompts.ChoiceResult result)

@@ -1,5 +1,5 @@
-﻿using System.Collections.Generic;
-using MedicalAppointment.Common.Storage.Interfaces;
+﻿using MedicalAppointment.Common.Storage.Interfaces;
+using System.Collections.Generic;
 
 namespace MedicalAppointment.App.Bots.Dialogs
 {
@@ -12,6 +12,7 @@ namespace MedicalAppointment.App.Bots.Dialogs
             yield return new NamePromptDialog();
             yield return new BithdatePromptDialog();
             yield return new AppointmentDatesToCancelDialog(patientStorage);
+            yield return new AppointmentDatesToConfirmDialog(patientStorage);
         }
     }
 }
