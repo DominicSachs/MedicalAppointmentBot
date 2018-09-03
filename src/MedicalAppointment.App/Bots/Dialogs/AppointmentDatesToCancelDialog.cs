@@ -5,7 +5,7 @@ using Microsoft.Bot.Builder.Core.Extensions;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Prompts.Choices;
 using Microsoft.Recognizers.Text;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Prompts = Microsoft.Bot.Builder.Prompts;
 
@@ -24,40 +24,18 @@ namespace MedicalAppointment.App.Bots.Dialogs
 
         public IDialog GetDialog() => new ChoicePrompt(Culture.German, ChoiceValidator);
 
-        public Task GetDialogStep(DialogContext dialogContext, object result, SkipStepFunction next)
+        public async Task GetDialogStep(DialogContext dialogContext, object result, SkipStepFunction next)
         {
             var state = dialogContext.Context.GetConversationState<InMemoryPromptState>();
 
             if (state.AppointmentType == AppointmentType.Create)
             {
-                return next();
+                await next();
             }
 
-            _patientStorage.Get(state.FirstName, state.LastName, state.Birthdate);
+            var cardOptions = await GetOptions(dialogContext);
 
-            var cardOptions = new ChoicePromptOptions
-            {
-                Choices = new List<Choice>
-                {
-                    new Choice
-                    {
-                        Value = "30.12.2018",
-                        Synonyms = new List<string> { "30.12.2018" }
-                    },
-                    new Choice
-                    {
-                        Value = "30.01.2019",
-                        Synonyms = new List<string> { "30.01.2019" }
-                    },
-                    new Choice
-                    {
-                        Value = "alle",
-                        Synonyms = new List<string> { "alle" }
-                    }
-                }
-            };
-
-            return dialogContext.Prompt(Name, "Wählen Sie den Termin aus, den sie absagen möchten?", cardOptions);
+            await dialogContext.Prompt(Name, "Wählen Sie den Termin aus, den sie absagen möchten?", cardOptions);
         }
 
         private static async Task ChoiceValidator(ITurnContext context, Prompts.ChoiceResult result)
@@ -68,6 +46,25 @@ namespace MedicalAppointment.App.Bots.Dialogs
                 await context.SendActivity("Asuwahl nicht erkannt.");
             }
             var value = result.Value;
+        }
+
+        private async Task<ChoicePromptOptions> GetOptions(DialogContext context)
+        {
+            var state = context.Context.GetConversationState<InMemoryPromptState>();
+            var patient = await _patientStorage.Get(state.FirstName, state.LastName, state.Birthdate);
+
+            return new ChoicePromptOptions
+            {
+                Choices = patient.Appointments.Select(a => new Choice { Value = a.AppointmentStart.ToString() }).ToList()
+                //Choices = new List<Choice>
+                //{
+                //    new Choice
+                //    {
+                //        Value = "alle",
+                //        Synonyms = new List<string> { "alle" }
+                //    }
+                //}
+            };
         }
     }
 }

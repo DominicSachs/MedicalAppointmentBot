@@ -2,13 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using MedicalAppointment.Common.Models;
 
 namespace MedicalAppointment.Common.Data
 {
-    internal class AppDbContext : DbContext
+    public class AppDbContext : DbContext
     {
-        public AppDbContext() { }
-
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
         public DbSet<Patient> Patients { get; set; }
@@ -39,21 +38,32 @@ namespace MedicalAppointment.Common.Data
         {
             base.OnModelCreating(builder);
 
-            builder.Entity<BaseEntity>().HasKey(p => p.Id);
-            builder.Entity<BaseEntity>().Property(p => p.CreatedBy).IsRequired().HasMaxLength(256);
-            builder.Entity<BaseEntity>().Property(p => p.ModifiedBy).IsRequired().HasMaxLength(256);
-            builder.Entity<BaseEntity>().Property(p => p.CreationDate).IsRequired();
-            builder.Entity<BaseEntity>().Property(p => p.ModifiedDate).IsRequired();
+            //builder.Entity<BaseEntity>().HasKey(p => p.Id);
+            //builder.Entity<BaseEntity>().Property(p => p.CreatedBy).IsRequired().HasMaxLength(256);
+            //builder.Entity<BaseEntity>().Property(p => p.ModifiedBy).IsRequired().HasMaxLength(256);
+            //builder.Entity<BaseEntity>().Property(p => p.CreationDate).IsRequired();
+            //builder.Entity<BaseEntity>().Property(p => p.ModifiedDate).IsRequired();
 
+            builder.Entity<Patient>().HasKey(p => p.Id);
             builder.Entity<Patient>().Property(p => p.FirstName).IsRequired().HasMaxLength(256);
             builder.Entity<Patient>().Property(p => p.FirstName).IsRequired().HasMaxLength(256);
             builder.Entity<Patient>().Property(p => p.BirthDate).IsRequired();
             builder.Entity<Patient>().Property(p => p.HealthInsurance).IsRequired().HasMaxLength(128);
             builder.Entity<Patient>().Property(p => p.Phone).IsRequired().HasMaxLength(128);
+            builder.Entity<Patient>().Property(p => p.CreatedBy).IsRequired().HasMaxLength(256);
+            builder.Entity<Patient>().Property(p => p.ModifiedBy).IsRequired().HasMaxLength(256);
+            builder.Entity<Patient>().Property(p => p.CreationDate).IsRequired();
+            builder.Entity<Patient>().Property(p => p.ModifiedDate).IsRequired();
 
+            builder.Entity<Appointment>().HasKey(p => p.Id);
             builder.Entity<Appointment>().Property(p => p.AppointmentStart).IsRequired();
             builder.Entity<Appointment>().Property(p => p.AppointmentEnd).IsRequired();
             builder.Entity<Appointment>().Property(p => p.State).IsRequired();
+            builder.Entity<Appointment>().Property(p => p.CreatedBy).IsRequired().HasMaxLength(256);
+            builder.Entity<Appointment>().Property(p => p.ModifiedBy).IsRequired().HasMaxLength(256);
+            builder.Entity<Appointment>().Property(p => p.CreationDate).IsRequired();
+            builder.Entity<Appointment>().Property(p => p.ModifiedDate).IsRequired();
+            builder.Entity<Appointment>().HasQueryFilter(a => a.State == AppointmentState.Active);
 
             //var p1 = new Patient
             //{
@@ -88,7 +98,7 @@ namespace MedicalAppointment.Common.Data
             //{
             //    Id = 1,
             //    PatientId = 1,
-            //    Patient = p1,
+            //    //Patient = p1,
             //    AppointmentStart = DateTime.Parse("02.12.2018 12:30:00"),
             //    AppointmentEnd = DateTime.Parse("02.12.2018 13:00:00"),
             //    State = AppointmentState.Active,
@@ -103,7 +113,7 @@ namespace MedicalAppointment.Common.Data
             //{
             //    Id = 2,
             //    PatientId = 1,
-            //    Patient = p1,
+            //    //Patient = p1,
             //    AppointmentStart = DateTime.Parse("12.04.2019 08:00:00"),
             //    AppointmentEnd = DateTime.Parse("12.04.2018 08:30:00"),
             //    State = AppointmentState.Active,

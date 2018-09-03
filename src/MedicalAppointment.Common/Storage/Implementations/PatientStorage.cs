@@ -9,12 +9,12 @@ namespace MedicalAppointment.Common.Storage.Implementations
 {
     public class PatientStorage : Storage<Patient>, IPatientStorage
     {
+        public PatientStorage(AppDbContext context) : base(context) { }
+
         public async Task<Patient> Get(string firstName, string lastName, DateTime birthDate)
         {
-            using (var ctx = new AppDbContext())
-            {
-                return await ctx.Patients.SingleOrDefaultAsync(p => p.FirstName == firstName && p.LastName == lastName && p.BirthDate == birthDate);
-            }
+            return await Context.Patients.Include(p => p.Appointments)
+                                 .SingleOrDefaultAsync(p => p.FirstName == firstName && p.LastName == lastName && p.BirthDate == birthDate);
         }
     }
 }

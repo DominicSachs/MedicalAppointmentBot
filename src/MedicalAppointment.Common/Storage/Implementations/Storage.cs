@@ -8,41 +8,36 @@ namespace MedicalAppointment.Common.Storage.Implementations
 {
     public abstract class Storage<T> : IStorage<T> where T : BaseEntity
     {
+        protected readonly AppDbContext Context;
+
+        protected Storage(AppDbContext context)
+        {
+            Context = context;
+        }
+
         public async Task<T> Get(int id)
         {
-            using (var ctx = new AppDbContext())
-            {
-                return await ctx.Set<T>().SingleOrDefaultAsync(p => p.Id == id);
-            }
+            return await Context.Set<T>().SingleOrDefaultAsync(p => p.Id == id);
         }
 
         public async Task<int> Add(T item)
         {
-            using (var ctx = new AppDbContext())
-            {
-                var patient = await ctx.Set<T>().AddAsync(item);
-                await ctx.SaveChangesAsync();
+            var patient = await Context.Set<T>().AddAsync(item);
+            await Context.SaveChangesAsync();
 
-                return patient.Entity.Id;
-            }
+            return patient.Entity.Id;
         }
 
         public async Task Delete(int id)
         {
-            using (var ctx = new AppDbContext())
-            {
-                var item = await Get(id);
-                ctx.Set<T>().Remove(item);
-                await ctx.SaveChangesAsync();
-            }
+            var item = await Get(id);
+            Context.Set<T>().Remove(item);
+            await Context.SaveChangesAsync();
         }
 
         public async Task Update(T item)
         {
-            using (var ctx = new AppDbContext())
-            {
-                await ctx.SaveChangesAsync();
-            }
+            await Context.SaveChangesAsync();
         }
     }
 }
