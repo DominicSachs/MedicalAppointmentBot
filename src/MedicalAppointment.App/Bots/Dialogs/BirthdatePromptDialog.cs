@@ -1,59 +1,58 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using MedicalAppointment.App.Models;
 using Microsoft.Bot.Builder;
-using Microsoft.Bot.Builder.Core.Extensions;
-using PromptsDialog = Microsoft.Bot.Builder.Dialogs;
-using Microsoft.Bot.Builder.Prompts;
-using Microsoft.Recognizers.Text;
+using Microsoft.Bot.Builder.Dialogs;
 
 namespace MedicalAppointment.App.Bots.Dialogs
 {
     internal class BithdatePromptDialog : IPromptDialog
     {
-        public string Name => nameof(BithdatePromptDialog);
+        private const string DialogId = nameof(BithdatePromptDialog);
+        private readonly BotStateAccessors _accessors;
 
-        public PromptsDialog.IDialog GetDialog() => new PromptsDialog.DateTimePrompt(Culture.German, DateValidator);
-
-        public async Task GetDialogStep(PromptsDialog.DialogContext dialogContext, object result, PromptsDialog.SkipStepFunction next)
+        public BithdatePromptDialog(BotStateAccessors accessors)
         {
-            await dialogContext.Prompt(Name, "Wie ist Ihr Geburtsdatum?");
+            _accessors = accessors;
         }
 
-        private static async Task DateValidator(ITurnContext context, DateTimeResult result)
+        public Dialog GetDialog() => new DateTimePrompt(DialogId, DateValidator);
+
+        public async Task<DialogTurnResult> GetWaterfallStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
-            if (result.Resolution.Count == 0)
+            return await stepContext.PromptAsync(DialogId,
+                new PromptOptions
+                {
+                    Prompt = MessageFactory.Text("Wie ist Ihr Geburtsdatum?"),
+                    RetryPrompt = MessageFactory.Text("Sie haben kein gültiges Datum angegeben. Bitte versuchen Sie es erneut."),
+                }, cancellationToken);
+        }
+
+        private async Task<bool> DateValidator(PromptValidatorContext<IList<DateTimeResolution>> promptContext, CancellationToken cancellationToken)
+        {
+            if (!promptContext.Recognized.Succeeded)
             {
-                await context.SendActivity("Die Eingabe wurde nicht als Datum erkannt.");
-                result.Status = PromptStatus.NotRecognized;
+                return await  Task.FromResult(false);
             }
 
-            if (!result.Succeeded())
-            {
-                result.Status = PromptStatus.NotRecognized;
-                await context.SendActivity("Sie haben kein gültiges Datum angegeben.");
-            }
-
-            // Find any recognized time that is not in the past.
-            var now = DateTime.Now;
-            var time = default(DateTime);
-            var resolution = result.Resolution.FirstOrDefault(res => DateTime.TryParse(res.Value, out time));// && time > now);
-
+            var birthDate = default(DateTime);
+            var resolution = promptContext.Recognized.Value.FirstOrDefault(res => DateTime.TryParse(res.Value, out birthDate) && birthDate < DateTime.Now.Date);
+            
             if (resolution != null)
             {
-                var state = context.GetConversationState<InMemoryPromptState>();
-                state.Birthdate = time;
+                var userProfile = await _accessors.UserProfile.GetAsync(promptContext.Context, () => new UserProfile(), cancellationToken);
+                userProfile.Birthdate = birthDate;
 
-                // If found, keep only that result.
-                result.Resolution.Clear();
-                result.Resolution.Add(resolution);
+                //// If found, keep only that result.
+                //promptContext.Recognized.Value.Clear();
+                //promptContext.Recognized.Value.Add(resolution);
+                return await Task.FromResult(true);
             }
-            else
-            {
-                await context.SendActivity("Bitte geben Sie ein gültiges Datum an.");
-                result.Status = PromptStatus.OutOfRange;
-            }
+
+            return await Task.FromResult(true);
         }
     }
 }

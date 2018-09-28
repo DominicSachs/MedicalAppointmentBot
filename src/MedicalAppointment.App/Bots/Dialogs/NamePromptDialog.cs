@@ -1,36 +1,52 @@
 ﻿using System.Linq;
+using Microsoft.Bot.Builder;
+using Microsoft.Bot.Builder.Dialogs;
+using System.Threading;
 using System.Threading.Tasks;
 using MedicalAppointment.App.Models;
-using Microsoft.Bot.Builder;
-using Microsoft.Bot.Builder.Core.Extensions;
-using Microsoft.Bot.Builder.Dialogs;
-using Prompts = Microsoft.Bot.Builder.Prompts;
 
 namespace MedicalAppointment.App.Bots.Dialogs
 {
     internal class NamePromptDialog : IPromptDialog
     {
-        public string Name => nameof(NamePromptDialog);
+        private const string DialogId = nameof(NamePromptDialog);
+        private readonly BotStateAccessors _accessors;
 
-        public IDialog GetDialog() => new TextPrompt(NameValidator);
-
-        public async Task GetDialogStep(DialogContext dialogContext, object result, SkipStepFunction next)
+        public NamePromptDialog(BotStateAccessors accessors)
         {
-            await dialogContext.Prompt(Name, "Wie ist Ihr voller Name?");
+            _accessors = accessors;
         }
 
-        private static async Task NameValidator(ITurnContext context, Prompts.TextResult result)
+        public Dialog GetDialog()
         {
-            var names = result.Value?.Split(' ');
+            return new TextPrompt(DialogId, NameValidator); 
+        }
+
+        public async Task<DialogTurnResult> GetWaterfallStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        { 
+            return await stepContext.PromptAsync(DialogId,
+                new PromptOptions
+                {
+                    Prompt = MessageFactory.Text("Please enter your name."),
+                    RetryPrompt = MessageFactory.Text("Ihr Name muss mindestens aus zwei Wörter bestehen. Bitte versuchen Sie es erneut."),
+                }, cancellationToken);
+        }
+
+
+        private async Task<bool> NameValidator(PromptValidatorContext<string> promptContext, CancellationToken cancellationToken)
+        {
+            var names = promptContext.Recognized.Value?.Split(' ');
+
             if (names?.Length < 2)
             {
-                result.Status = Prompts.PromptStatus.NotRecognized;
-                await context.SendActivity("Ihr Name muss mindestens aus zwei Wörter bestehen.");
+                return await Task.FromResult(false);
             }
-            
-            var state = context.GetConversationState<InMemoryPromptState>();
-            state.FirstName = names[0];
-            state.LastName = string.Join(' ', names.Skip(1));
+
+            var userProfile = await _accessors.UserProfile.GetAsync(promptContext.Context, () => new UserProfile(), cancellationToken);
+            userProfile.FirstName = names[0];
+            userProfile.LastName = string.Join(' ', names.Skip(1));
+
+            return await Task.FromResult(true);
         }
     }
 }

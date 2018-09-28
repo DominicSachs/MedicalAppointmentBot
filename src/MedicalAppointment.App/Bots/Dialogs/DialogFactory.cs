@@ -5,14 +5,14 @@ namespace MedicalAppointment.App.Bots.Dialogs
 {
     public class DialogFactory : IDialogFactory
     {
-        public IEnumerable<IPromptDialog> GetDialogs(IPatientStorage patientStorage)
+        public IEnumerable<IPromptDialog> GetDialogs(IPatientStorage patientStorage, BotStateAccessors accessors)
         {
-            yield return new AppointmentPromptDialog();
-            yield return new AppointmentReasonPromptDialog();
-            yield return new NamePromptDialog();
-            yield return new BithdatePromptDialog();
-            yield return new AppointmentDatesToCancelDialog(patientStorage);
-            yield return new AppointmentDatesToConfirmDialog(patientStorage);
+            yield return new AppointmentPromptDialog(accessors);
+            yield return new AppointmentReasonPromptDialog(accessors);
+            yield return new NamePromptDialog(accessors);
+            yield return new BithdatePromptDialog(accessors);
+            yield return new AppointmentDatesToCancelDialog(patientStorage, accessors);
+            yield return new AppointmentDatesToConfirmDialog(patientStorage, accessors);
         }
     }
 }

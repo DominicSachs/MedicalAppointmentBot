@@ -21,6 +21,6 @@ namespace MedicalAppointment.Common.Entities
 
         public string Phone { get; set; }
 
-        public virtual List<Appointment> Appointments { get; set; }
+        public virtual List<Appointment> Appointments { get; set; } = new List<Appointment>();
     }
 }

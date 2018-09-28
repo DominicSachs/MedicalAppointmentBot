@@ -2,48 +2,54 @@
 using MedicalAppointment.Common.Extensions;
 using MedicalAppointment.Common.Models;
 using Microsoft.Bot.Builder;
-using Microsoft.Bot.Builder.Core.Extensions;
 using Microsoft.Bot.Builder.Dialogs;
-using Microsoft.Bot.Builder.Prompts.Choices;
-using Microsoft.Recognizers.Text;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
-using Prompts = Microsoft.Bot.Builder.Prompts;
+using Microsoft.Bot.Builder.Dialogs.Choices;
 
 namespace MedicalAppointment.App.Bots.Dialogs
 {
     internal class AppointmentReasonPromptDialog : IPromptDialog
     {
-        public string Name => nameof(AppointmentReasonPromptDialog);
+        private string DialogId = nameof(AppointmentReasonPromptDialog);
+        private readonly BotStateAccessors _accessors;
 
-        public IDialog GetDialog() => new ChoicePrompt(Culture.German, ChoiceValidator) { Style = Prompts.ListStyle.SuggestedAction };
-
-        public Task GetDialogStep(DialogContext dialogContext, object result, SkipStepFunction next)
+        public AppointmentReasonPromptDialog(BotStateAccessors accessors)
         {
-            var state = dialogContext.Context.GetConversationState<InMemoryPromptState>();
-            if (state.AppointmentType == AppointmentType.Cancel)
-            {
-                return next();
-            }
-
-            return dialogContext.Prompt(Name, "Was ist der Grund für Ihren Termin?", GetOptions());
+            _accessors = accessors;
         }
 
-        private static async Task ChoiceValidator(ITurnContext context, Prompts.ChoiceResult result)
+        public Dialog GetDialog() => new ChoicePrompt(DialogId, ChoiceValidator) { Style = ListStyle.SuggestedAction };
+
+        public async Task<DialogTurnResult> GetWaterfallStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
-            if (!result.Succeeded())
+            var userProfile = await _accessors.UserProfile.GetAsync(stepContext.Context, () => new UserProfile(), cancellationToken);
+            
+            if (userProfile.AppointmentType == AppointmentType.Cancel)
             {
-                result.Status = Prompts.PromptStatus.NotRecognized;
-                await context.SendActivity("Asuwahl nicht erkannt.");
+                return await stepContext.NextAsync(cancellationToken: cancellationToken);
             }
 
-            var state = context.GetConversationState<InMemoryPromptState>();
-            state.AppointmentReason = result.Value.Value.GetValueFromDescription<AppointmentReason>();
+            return await stepContext.PromptAsync(DialogId, GetOptions(), cancellationToken);
         }
 
-        private static ChoicePromptOptions GetOptions()
+        private async Task<bool> ChoiceValidator(PromptValidatorContext<FoundChoice> promptContext, CancellationToken cancellationToken)
         {
-            return new ChoicePromptOptions
+            if (!promptContext.Recognized.Succeeded)
+            {
+                await promptContext.Context.SendActivityAsync("Asuwahl nicht erkannt.", cancellationToken: cancellationToken);
+                return await Task.FromResult(false);
+            }
+
+            var userProfile = await _accessors.UserProfile.GetAsync(promptContext.Context, () => new UserProfile(), cancellationToken);
+            userProfile.AppointmentReason = promptContext.Recognized.Value.Value.GetValueFromDescription<AppointmentReason>();
+            return await Task.FromResult(true);
+        }
+
+        private static PromptOptions GetOptions()
+        {
+            return new PromptOptions
             {
                 Choices = new List<Choice>
                 {
@@ -62,7 +68,8 @@ namespace MedicalAppointment.App.Bots.Dialogs
                         Value = AppointmentReason.NewPatient.GetDescription(),
                         Synonyms = new List<string> { AppointmentReason.NewPatient.ToString() }
                     },
-                }
+                },
+                Prompt = MessageFactory.Text("Was ist der Anlass Ihres Termins?")
             };
         }
     }

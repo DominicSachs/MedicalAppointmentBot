@@ -1,14 +1,13 @@
-﻿using System.Threading.Tasks;
+﻿using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.Bot.Builder.Dialogs;
 
 namespace MedicalAppointment.App.Bots.Dialogs
 {
     public interface IPromptDialog
     {
-        string Name { get; }
+        Dialog GetDialog();
 
-        IDialog GetDialog();
-
-        Task GetDialogStep(DialogContext dialogContext, object result, SkipStepFunction next);
+        Task<DialogTurnResult> GetWaterfallStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken);
     }
 }

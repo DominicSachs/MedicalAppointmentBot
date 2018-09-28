@@ -1,42 +1,41 @@
 ﻿using MedicalAppointment.App.Models;
 using MedicalAppointment.Common.Storage.Interfaces;
 using Microsoft.Bot.Builder;
-using Microsoft.Bot.Builder.Core.Extensions;
 using Microsoft.Bot.Builder.Dialogs;
-using Microsoft.Bot.Builder.Prompts.Choices;
-using Microsoft.Recognizers.Text;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
-using Prompts = Microsoft.Bot.Builder.Prompts;
+using Microsoft.Bot.Builder.Dialogs.Choices;
 
 namespace MedicalAppointment.App.Bots.Dialogs
 {
     internal class AppointmentDatesToConfirmDialog : IPromptDialog
     {
+        private const string DialogId = nameof(AppointmentDatesToConfirmDialog);
         private readonly IPatientStorage _patientStorage;
+        private readonly BotStateAccessors _accessors;
 
-        public AppointmentDatesToConfirmDialog(IPatientStorage patientStorage)
+        public AppointmentDatesToConfirmDialog(IPatientStorage patientStorage, BotStateAccessors accessors)
         {
             _patientStorage = patientStorage;
+            _accessors = accessors;
         }
 
-        public string Name => nameof(AppointmentDatesToConfirmDialog);
+        public Dialog GetDialog() => new ChoicePrompt(DialogId, ChoiceValidator);
 
-        public IDialog GetDialog() => new ChoicePrompt(Culture.German, ChoiceValidator);
-
-        public Task GetDialogStep(DialogContext dialogContext, object result, SkipStepFunction next)
+        public async Task<DialogTurnResult> GetWaterfallStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
-            var state = dialogContext.Context.GetConversationState<InMemoryPromptState>();
+            var userProfile = await _accessors.UserProfile.GetAsync(stepContext.Context, () => new UserProfile(), cancellationToken);
 
-            if (state.AppointmentType == AppointmentType.Cancel)
+            if (userProfile.AppointmentType == AppointmentType.Cancel)
             {
-                return next();
+                return await stepContext.NextAsync(cancellationToken: cancellationToken);
             }
 
-            _patientStorage.Get(state.FirstName, state.LastName, state.Birthdate);
-
-            var cardOptions = new ChoicePromptOptions
+            return await stepContext.PromptAsync(DialogId, new PromptOptions
             {
+                Prompt = MessageFactory.Text("Bitte wählen Sie ein Datum aus."),
+                RetryPrompt = MessageFactory.Text("Asuwahl nicht erkannt."),
                 Choices = new List<Choice>
                 {
                     new Choice
@@ -50,19 +49,17 @@ namespace MedicalAppointment.App.Bots.Dialogs
                         Synonyms = new List<string> { "30.01.2019 11:00" }
                     }
                 }
-            };
-
-            return dialogContext.Prompt(Name, "Wählen Sie Ihren Termin aus?", cardOptions);
+            }, cancellationToken);
         }
-
-        private static async Task ChoiceValidator(ITurnContext context, Prompts.ChoiceResult result)
+        
+        private async Task<bool> ChoiceValidator(PromptValidatorContext<FoundChoice> promptContext, CancellationToken cancellationToken)
         {
-            if (!result.Succeeded())
+            if (!promptContext.Recognized.Succeeded)
             {
-                result.Status = Prompts.PromptStatus.NotRecognized;
-                await context.SendActivity("Asuwahl nicht erkannt.");
+                return await Task.FromResult(false);
             }
-            var value = result.Value;
+
+            return await Task.FromResult(true);
         }
     }
 }

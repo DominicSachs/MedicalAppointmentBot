@@ -1,42 +1,47 @@
 ﻿using MedicalAppointment.App.Models;
 using MedicalAppointment.Common.Extensions;
-using Microsoft.Bot.Builder;
-using Microsoft.Bot.Builder.Core.Extensions;
 using Microsoft.Bot.Builder.Dialogs;
-using Microsoft.Bot.Builder.Prompts.Choices;
-using Microsoft.Recognizers.Text;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
-using Prompts = Microsoft.Bot.Builder.Prompts;
+using Microsoft.Bot.Builder;
+using Microsoft.Bot.Builder.Dialogs.Choices;
 
 namespace MedicalAppointment.App.Bots.Dialogs
 {
     internal class AppointmentPromptDialog : IPromptDialog
     {
-        public string Name => nameof(AppointmentPromptDialog);
+        private const string DialogId = nameof(AppointmentPromptDialog);
+        private readonly BotStateAccessors _accessors;
 
-        public IDialog GetDialog() => new ChoicePrompt(Culture.German, ChoiceValidator) { Style = Prompts.ListStyle.SuggestedAction };
-
-        public Task GetDialogStep(DialogContext dialogContext, object result, SkipStepFunction next)
+        public AppointmentPromptDialog(BotStateAccessors accessors)
         {
-            return dialogContext.Prompt(Name, "Was möchten Sie tun?", GetOptions());
+            _accessors = accessors;
         }
 
-        private static async Task ChoiceValidator(ITurnContext context, Prompts.ChoiceResult result)
+        public Dialog GetDialog() => new ChoicePrompt(DialogId, ChoiceValidator) { Style = ListStyle.SuggestedAction };
+
+        public async Task<DialogTurnResult> GetWaterfallStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
-            if (!result.Succeeded())
+            return await stepContext.PromptAsync(DialogId, GetOptions(), cancellationToken);
+        }
+
+        private async Task<bool> ChoiceValidator(PromptValidatorContext<FoundChoice> promptContext, CancellationToken cancellationToken)
+        {
+            if (!promptContext.Recognized.Succeeded)
             {
-                result.Status = Prompts.PromptStatus.NotRecognized;
-                await context.SendActivity("Asuwahl nicht erkannt.");
+                return await Task.FromResult(false);
             }
 
-            var state = context.GetConversationState<InMemoryPromptState>();
-            state.AppointmentType = result.Value.Value.GetValueFromDescription<AppointmentType>();
+            var userProfile = await _accessors.UserProfile.GetAsync(promptContext.Context, () => new UserProfile(), cancellationToken);
+            userProfile.AppointmentType = promptContext.Recognized.Value.Value.GetValueFromDescription<AppointmentType>();
+
+            return await Task.FromResult(true);
         }
 
-        private static ChoicePromptOptions GetOptions()
+        private static PromptOptions GetOptions()
         {
-            return new ChoicePromptOptions
+            return new PromptOptions
             {
                 Choices = new List<Choice>
                 {
@@ -50,7 +55,8 @@ namespace MedicalAppointment.App.Bots.Dialogs
                         Value = AppointmentType.Cancel.GetDescription(),
                         Synonyms = new List<string> { AppointmentType.Cancel.ToString(), nameof(AppointmentType.Cancel) }
                     }
-                }
+                },
+                Prompt = MessageFactory.Text("Was wollen Sie tun.")
             };
         }
     }

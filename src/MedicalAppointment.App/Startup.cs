@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using MedicalAppointment.App.Bots;
 using MedicalAppointment.App.Bots.Dialogs;
 using MedicalAppointment.App.Models;
@@ -6,20 +7,24 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Bot.Builder.BotFramework;
-using Microsoft.Bot.Builder.Core.Extensions;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
-using Microsoft.Bot.Builder.TraceExtensions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MedicalAppointment.Common.Extensions;
 using MedicalAppointment.Common.Storage.Implementations;
 using MedicalAppointment.Common.Storage.Interfaces;
+using Microsoft.Bot.Builder;
+using Microsoft.Bot.Builder.Dialogs;
+using Microsoft.Bot.Builder.Integration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace MedicalAppointment.App
 {
     public class Startup
     {
         private readonly IConfiguration _configuration;
+        private ILoggerFactory _loggerFactory;
 
         public Startup(IConfiguration configuration)
         {
@@ -38,20 +43,56 @@ namespace MedicalAppointment.App
             services.AddBot<AppointmentBot>(options =>
             {
                 options.CredentialProvider = new ConfigurationCredentialProvider(_configuration);
+                ILogger logger = _loggerFactory.CreateLogger<AppointmentBot>();
 
-                options.Middleware.Add(new CatchExceptionMiddleware<Exception>(async (context, exception) =>
+                options.OnTurnError = async (context, exception) =>
                 {
-                    await context.TraceActivity("EchoBot Exception", exception);
-                    await context.SendActivity("Sorry, it looks like something went wrong!");
-                }));
+                    logger.LogError($"Exception caught : {exception}");
+                    await context.SendActivityAsync("Sorry, it looks like something went wrong.");
+                };
 
                 IStorage dataStore = new MemoryStorage();
-                options.Middleware.Add(new ConversationState<InMemoryPromptState>(dataStore));
+                var conversationState = new ConversationState(dataStore);
+                options.State.Add(conversationState);
+
+                var userState = new UserState(dataStore);
+                options.State.Add(userState);
+            });
+
+            services.AddSingleton(sp =>
+            {
+                var options = sp.GetRequiredService<IOptions<BotFrameworkOptions>>().Value;
+                if (options == null)
+                {
+                    throw new InvalidOperationException("BotFrameworkOptions must be configured prior to setting up the State Accessors");
+                }
+
+                var conversationState = options.State.OfType<ConversationState>().FirstOrDefault();
+                if (conversationState == null)
+                {
+                    throw new InvalidOperationException("ConversationState must be defined and added before adding conversation-scoped state accessors.");
+                }
+
+                var userState = options.State.OfType<UserState>().FirstOrDefault();
+                if (userState == null)
+                {
+                    throw new InvalidOperationException("UserState must be defined and added before adding user-scoped state accessors.");
+                }
+
+                var accessors = new BotStateAccessors(conversationState, userState)
+                {
+                    ConversationDialogState = conversationState.CreateProperty<DialogState>("DialogState"),
+                    UserProfile = userState.CreateProperty<UserProfile>("UserProfile"),
+                };
+
+                return accessors;
             });
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            _loggerFactory = loggerFactory;
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
