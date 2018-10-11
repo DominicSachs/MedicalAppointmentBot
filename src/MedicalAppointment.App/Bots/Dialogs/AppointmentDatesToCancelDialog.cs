@@ -1,10 +1,13 @@
-﻿using MedicalAppointment.App.Models;
+﻿using System;
+using System.Globalization;
+using MedicalAppointment.App.Models;
 using MedicalAppointment.Common.Storage.Interfaces;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using MedicalAppointment.Common.Entities;
 using Microsoft.Bot.Builder.Dialogs.Choices;
 
 namespace MedicalAppointment.App.Bots.Dialogs
@@ -33,7 +36,18 @@ namespace MedicalAppointment.App.Bots.Dialogs
                 return await stepContext.NextAsync(cancellationToken: cancellationToken);
             }
 
-            var options = await GetOptions(stepContext, cancellationToken);
+            var patient = await _patientStorage.Get(userProfile.FirstName, userProfile.LastName, userProfile.Birthdate);
+
+            if (patient == null || patient.Appointments.Count == 0)
+            {
+                var reply = stepContext.Context.Activity.CreateReply("Wir haben leider keine Termine für Sie gefunden.");
+                await stepContext.Context.SendActivityAsync(reply, cancellationToken);
+                return await stepContext.EndDialogAsync(cancellationToken: cancellationToken);
+            }
+
+            var options = await GetOptions(userProfile, patient);
+
+            await _accessors.UserState.SaveChangesAsync(stepContext.Context, cancellationToken: cancellationToken);
             return await stepContext.PromptAsync(DialogId, options, cancellationToken);
         }
         
@@ -44,30 +58,22 @@ namespace MedicalAppointment.App.Bots.Dialogs
                 return await Task.FromResult(false);
             }
 
+            var userProfile = await _accessors.UserProfile.GetAsync(promptContext.Context, () => new UserProfile(), cancellationToken);
+            userProfile.AppointmentDate = DateTime.Parse(promptContext.Recognized.Value.Value);
+            await _accessors.UserState.SaveChangesAsync(promptContext.Context, cancellationToken: cancellationToken);
+
             return await Task.FromResult(true);
         }
 
-        private async Task<PromptOptions> GetOptions(WaterfallStepContext context, CancellationToken cancellationToken)
+        private async Task<PromptOptions> GetOptions(UserProfile userProfile, Patient patient)
         {
-            var userProfile = await _accessors.UserProfile.GetAsync(context.Context, () => new UserProfile(), cancellationToken);
-
-            var patient = await _patientStorage.Get(userProfile.FirstName, userProfile.LastName, userProfile.Birthdate);
             userProfile.PatientId = patient.Id;
-            await _accessors.UserState.SaveChangesAsync(context.Context, cancellationToken: cancellationToken);
 
             return new PromptOptions
             {
-                Choices = patient.Appointments.Select(a => new Choice { Value = a.AppointmentStart.ToString() }).ToList(),
+                Choices = ChoiceFactory.ToChoices(patient.Appointments.Select(a => a.AppointmentStart.ToString()).ToList()),
                 Prompt = MessageFactory.Text("Wählen Sie den Termin aus, den sie absagen möchten."),
-                RetryPrompt = MessageFactory.Text("Auswahl nicht erkannt.")
-                //Choices = new List<Choice>
-                //{
-                //    new Choice
-                //    {
-                //        Value = "alle",
-                //        Synonyms = new List<string> { "alle" }
-                //    }
-                //}
+                RetryPrompt = MessageFactory.Text("Die Auswahl wurde nicht erkannt, bitte versuchen Sie es erneut.")
             };
         }
     }

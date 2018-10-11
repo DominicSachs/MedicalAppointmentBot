@@ -5,6 +5,6 @@ namespace MedicalAppointment.App.Bots.Dialogs
 {
     public interface IDialogFactory
     {
-        IEnumerable<IPromptDialog> GetDialogs(IPatientStorage patientStorage, BotStateAccessors accessors);
+        IEnumerable<IPromptDialog> GetDialogs(IPatientStorage patientStorage, IAppointmentStorage appointmentStorage, BotStateAccessors accessors);
     }
 }

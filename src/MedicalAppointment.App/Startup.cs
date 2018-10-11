@@ -39,6 +39,7 @@ namespace MedicalAppointment.App
 
             services.AddSingleton<IDialogFactory, DialogFactory>();
             services.AddTransient<IPatientStorage, PatientStorage>();
+            services.AddTransient<IAppointmentStorage, AppointmentStorage>();
 
             services.AddBot<AppointmentBot>(options =>
             {

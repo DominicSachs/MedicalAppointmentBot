@@ -1,8 +1,9 @@
-﻿using MedicalAppointment.App.Models;
+﻿using System;
+using MedicalAppointment.App.Models;
 using MedicalAppointment.Common.Storage.Interfaces;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
-using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder.Dialogs.Choices;
@@ -13,11 +14,13 @@ namespace MedicalAppointment.App.Bots.Dialogs
     {
         private const string DialogId = nameof(AppointmentDatesToConfirmDialog);
         private readonly IPatientStorage _patientStorage;
+        private readonly IAppointmentStorage _appointmentStorage;
         private readonly BotStateAccessors _accessors;
 
-        public AppointmentDatesToConfirmDialog(IPatientStorage patientStorage, BotStateAccessors accessors)
+        public AppointmentDatesToConfirmDialog(IPatientStorage patientStorage, IAppointmentStorage appointmentStorage, BotStateAccessors accessors)
         {
             _patientStorage = patientStorage;
+            _appointmentStorage = appointmentStorage;
             _accessors = accessors;
         }
 
@@ -32,23 +35,13 @@ namespace MedicalAppointment.App.Bots.Dialogs
                 return await stepContext.NextAsync(cancellationToken: cancellationToken);
             }
 
+            var freeAppointments = await _appointmentStorage.GetFreeAppointments();
+
             return await stepContext.PromptAsync(DialogId, new PromptOptions
             {
-                Prompt = MessageFactory.Text("Bitte wählen Sie ein Datum aus."),
-                RetryPrompt = MessageFactory.Text("Asuwahl nicht erkannt."),
-                Choices = new List<Choice>
-                {
-                    new Choice
-                    {
-                        Value = "30.12.2018",
-                        Synonyms = new List<string> { "30.12.2018 09:00" }
-                    },
-                    new Choice
-                    {
-                        Value = "30.01.2019",
-                        Synonyms = new List<string> { "30.01.2019 11:00" }
-                    }
-                }
+                Choices = ChoiceFactory.ToChoices(freeAppointments.Select(a => a.AppointmentStart.ToString()).ToList()),
+                Prompt = MessageFactory.Text("Bitte wählen Sie einen Termin aus."),
+                RetryPrompt = MessageFactory.Text("Die Auswahl wurde nicht erkannt, bitte versuchen Sie es erneut.")
             }, cancellationToken);
         }
         
@@ -58,6 +51,10 @@ namespace MedicalAppointment.App.Bots.Dialogs
             {
                 return await Task.FromResult(false);
             }
+
+            var userProfile = await _accessors.UserProfile.GetAsync(promptContext.Context, () => new UserProfile(), cancellationToken);
+            userProfile.AppointmentDate = DateTime.Parse(promptContext.Recognized.Value.Value);
+            await _accessors.UserState.SaveChangesAsync(promptContext.Context, cancellationToken: cancellationToken);
 
             return await Task.FromResult(true);
         }

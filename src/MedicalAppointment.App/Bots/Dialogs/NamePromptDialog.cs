@@ -27,8 +27,8 @@ namespace MedicalAppointment.App.Bots.Dialogs
             return await stepContext.PromptAsync(DialogId,
                 new PromptOptions
                 {
-                    Prompt = MessageFactory.Text("Please enter your name."),
-                    RetryPrompt = MessageFactory.Text("Ihr Name muss mindestens aus zwei Wörter bestehen. Bitte versuchen Sie es erneut."),
+                    Prompt = MessageFactory.Text("Bitte geben Sie ihren vollständigen Namen ein."),
+                    RetryPrompt = MessageFactory.Text("Ihr Name muss mindestens aus zwei Wörtern bestehen. Bitte versuchen Sie es erneut."),
                 }, cancellationToken);
         }
 

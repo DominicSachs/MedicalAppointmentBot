@@ -43,20 +43,8 @@ namespace MedicalAppointment.App.Bots.Dialogs
         {
             return new PromptOptions
             {
-                Choices = new List<Choice>
-                {
-                    new Choice
-                    {
-                        Value = AppointmentType.Create.GetDescription(),
-                        Synonyms = new List<string> { AppointmentType.Create.ToString(), nameof(AppointmentType.Create) }
-                    },
-                    new Choice
-                    {
-                        Value = AppointmentType.Cancel.GetDescription(),
-                        Synonyms = new List<string> { AppointmentType.Cancel.ToString(), nameof(AppointmentType.Cancel) }
-                    }
-                },
-                Prompt = MessageFactory.Text("Was wollen Sie tun.")
+                Choices = ChoiceFactory.ToChoices(new List<string> { AppointmentType.Create.GetDescription(), AppointmentType.Cancel.GetDescription() }),
+                Prompt = MessageFactory.Text("Was ist ihr Anliegen.")
             };
         }
     }

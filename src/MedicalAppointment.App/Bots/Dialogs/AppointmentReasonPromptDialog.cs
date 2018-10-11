@@ -49,26 +49,16 @@ namespace MedicalAppointment.App.Bots.Dialogs
 
         private static PromptOptions GetOptions()
         {
+            var choices = new List<string>
+            {
+                AppointmentReason.UrgentSurgery.GetDescription(),
+                AppointmentReason.MedicalExamination.GetDescription(),
+                AppointmentReason.NewPatient.GetDescription()
+            };
+            
             return new PromptOptions
             {
-                Choices = new List<Choice>
-                {
-                    new Choice
-                    {
-                        Value = AppointmentReason.UrgentSurgery.GetDescription(),
-                        Synonyms = new List<string> { AppointmentReason.UrgentSurgery.ToString() }
-                    },
-                    new Choice
-                    {
-                        Value = AppointmentReason.MedicalExamination.GetDescription(),
-                        Synonyms = new List<string> { AppointmentReason.MedicalExamination.ToString() }
-                    },
-                    new Choice
-                    {
-                        Value = AppointmentReason.NewPatient.GetDescription(),
-                        Synonyms = new List<string> { AppointmentReason.NewPatient.ToString() }
-                    },
-                },
+                Choices = ChoiceFactory.ToChoices(choices),
                 Prompt = MessageFactory.Text("Was ist der Anlass Ihres Termins?")
             };
         }

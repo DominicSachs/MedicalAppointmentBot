@@ -16,5 +16,6 @@ namespace MedicalAppointment.App.Models
         public AppointmentType AppointmentType { get; set; }
 
         public AppointmentReason AppointmentReason { get; set; }
+        public DateTime AppointmentDate { get; set; }
     }
 }

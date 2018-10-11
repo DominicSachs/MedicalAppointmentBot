@@ -26,7 +26,7 @@ namespace MedicalAppointment.App.Bots.Dialogs
             return await stepContext.PromptAsync(DialogId,
                 new PromptOptions
                 {
-                    Prompt = MessageFactory.Text("Wie ist Ihr Geburtsdatum?"),
+                    Prompt = MessageFactory.Text("Bitte geben Sie Ihr Geburtsdatum ein?"),
                     RetryPrompt = MessageFactory.Text("Sie haben kein gültiges Datum angegeben. Bitte versuchen Sie es erneut."),
                 }, cancellationToken);
         }
@@ -39,16 +39,13 @@ namespace MedicalAppointment.App.Bots.Dialogs
             }
 
             var birthDate = default(DateTime);
-            var resolution = promptContext.Recognized.Value.FirstOrDefault(res => DateTime.TryParse(res.Value, out birthDate) && birthDate < DateTime.Now.Date);
+            var resolution = promptContext.Recognized.Value.First(res => DateTime.TryParse(res.Value, out birthDate) && birthDate < DateTime.Now.Date);
             
             if (resolution != null)
             {
                 var userProfile = await _accessors.UserProfile.GetAsync(promptContext.Context, () => new UserProfile(), cancellationToken);
                 userProfile.Birthdate = birthDate;
 
-                //// If found, keep only that result.
-                //promptContext.Recognized.Value.Clear();
-                //promptContext.Recognized.Value.Add(resolution);
                 return await Task.FromResult(true);
             }
 
