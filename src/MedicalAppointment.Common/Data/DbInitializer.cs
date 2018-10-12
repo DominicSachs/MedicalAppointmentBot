@@ -16,6 +16,55 @@ namespace MedicalAppointment.Common.Data
 
             if (!context.Patients.Any())
             {
+                var d1 = new Doctor { Title = "Dr. med.", FirstName = "Sicky", LastName = "Sick" };
+                var d2 = new Doctor { Title = "Dr. med. habil.", FirstName = "Igor", LastName = "Ill" };
+
+                d1.Schedules.AddRange(new [] {
+                    new DoctorSchedule
+                    {
+                        Doctor = d1,
+                        DayOfWeek = 1,
+                        StartTime = new TimeSpan(9, 0, 0),
+                        EndTime = new TimeSpan(18, 0, 0),
+                        BreakStartTime = new TimeSpan(12, 0, 0),
+                        BreakEndTime = new TimeSpan(14, 0, 0)
+                    },
+                    new DoctorSchedule
+                    {
+                        Doctor = d1,
+                        DayOfWeek = 2,
+                        StartTime = new TimeSpan(9, 0, 0),
+                        EndTime = new TimeSpan(18, 0, 0),
+                        BreakStartTime = new TimeSpan(12, 0, 0),
+                        BreakEndTime = new TimeSpan(14, 0, 0)
+                    },
+                    new DoctorSchedule
+                    {
+                        Doctor = d1,
+                        DayOfWeek = 3,
+                        StartTime = new TimeSpan(9, 0, 0),
+                        EndTime = new TimeSpan(13, 0, 0)
+                    },
+                    new DoctorSchedule
+                    {
+                        Doctor = d1,
+                        DayOfWeek = 4,
+                        StartTime = new TimeSpan(9, 0, 0),
+                        EndTime = new TimeSpan(18, 0, 0),
+                        BreakStartTime = new TimeSpan(12, 0, 0),
+                        BreakEndTime = new TimeSpan(14, 0, 0)
+                    },
+                    new DoctorSchedule
+                    {
+                        Doctor = d1,
+                        DayOfWeek = 4,
+                        StartTime = new TimeSpan(9, 0, 0),
+                        EndTime = new TimeSpan(18, 0, 0),
+                        BreakStartTime = new TimeSpan(12, 0, 0),
+                        BreakEndTime = new TimeSpan(14, 0, 0)
+                    }
+                });
+
                 var p1 = new Patient
                 {
                     FirstName = "Tina",
